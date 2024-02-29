@@ -1,4 +1,4 @@
-import {Pressable, StatusBar, StyleSheet, Text, View} from 'react-native';
+import {Pressable, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import {FormLabel} from '../components/label';
 import {FormInput} from '../components/input';
@@ -40,7 +40,6 @@ export const Signup = ({ navigation }: SignupProps) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor="#2B2B52" barStyle='light-content' />
       <FormLabel>Name*</FormLabel>
       <FormInput
         control={control}
