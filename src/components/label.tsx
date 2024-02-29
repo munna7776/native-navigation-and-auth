@@ -3,7 +3,7 @@ import React, { ComponentProps, PropsWithChildren } from 'react'
 
 type LabelProps = ComponentProps<typeof Text>
 
-export const Label = ({children,style,...props}: LabelProps) => {
+export const FormLabel = ({children,style,...props}: LabelProps) => {
   return (
       <Text style={[styles.text, style]} {...props} >{children}</Text>
   )

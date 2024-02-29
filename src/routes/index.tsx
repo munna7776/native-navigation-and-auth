@@ -5,7 +5,7 @@ import AuthStack from './AuthStack';
 import {Loading} from '../components/loading';
 
 export default function Router() {
-  const {loading, user} = useAppwriteService();
+  const {loading, isLoggedIn} = useAppwriteService();
 
   if (loading) {
     return <Loading />;
@@ -13,7 +13,7 @@ export default function Router() {
 
   return (
     <NavigationContainer>
-      {user ? <AppStack /> : <AuthStack />}
+      {isLoggedIn ? <AppStack /> : <AuthStack />}
     </NavigationContainer>
   );
 }

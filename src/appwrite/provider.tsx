@@ -12,7 +12,8 @@ type AppwriteCtxType = {
     logout: () => void;
     loading: boolean;
     user: User | null;
-    updateUser: (user: User) => void;
+    isLoggedIn: boolean;
+    updateUserLoggedInStatus: (loggedInStatus: boolean) => void
 }
 
 const AppwriteContext = createContext<AppwriteCtxType>({
@@ -20,7 +21,9 @@ const AppwriteContext = createContext<AppwriteCtxType>({
     loading: false,
     user: null,
     logout: () => {},
-    updateUser: () => {},
+    isLoggedIn: false,
+    updateUserLoggedInStatus: () => {}
+    
 })
 
 export const useAppwriteService = () => {
@@ -34,6 +37,7 @@ export const useAppwriteService = () => {
 export const AppwriteProvider = ({children}: { children: ReactNode }) => {
     const [loading, setLoading] = useState(false);
     const [user,setUser] = useState<User |null>(null)
+    const [isUserLoggedIn, setIsUserLoggedIn] = useState(false)
 
     const appwriteRef = useRef(new AppwriteService())
     
@@ -44,6 +48,7 @@ export const AppwriteProvider = ({children}: { children: ReactNode }) => {
         const userModel = await appwriteRef.current.getCurentUser();
         if (userModel) {
           setUser({name: userModel.name, email: userModel.email})
+          setIsUserLoggedIn(true)
         }
       } catch (error) {
         Snackbar.show({
@@ -56,12 +61,14 @@ export const AppwriteProvider = ({children}: { children: ReactNode }) => {
     })();
   }, []);
 
-  const updateUser = (userData: User) => setUser(userData)
+  const updateUserLoggedInStatus = (loggedInStatus: boolean) => setIsUserLoggedIn(loggedInStatus)
+
 
   const handleLogout = async() => {
     try {
       await appwriteRef.current.logout()
       setUser(null)
+      setIsUserLoggedIn(false)
       Snackbar.show({
         text: "Successfully logged out",
         duration: Snackbar.LENGTH_SHORT
@@ -79,7 +86,8 @@ export const AppwriteProvider = ({children}: { children: ReactNode }) => {
         loading,
         user,
         logout: handleLogout,
-        updateUser
+        isLoggedIn: isUserLoggedIn,
+        updateUserLoggedInStatus
     }
 
     return (

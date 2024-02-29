@@ -13,8 +13,8 @@ interface InputProps<TFieldValues extends FieldValues> extends TextInputProps {
   name: FieldPath<TFieldValues>;
 }
 
-export const Input = <TFieldValues extends FieldValues,>({control, name, secureTextEntry, ...props}: InputProps<TFieldValues>) => {
-    const [show, setShow] = useState(false)
+export const FormInput = <TFieldValues extends FieldValues,>({control, name, secureTextEntry, ...props}: InputProps<TFieldValues>) => {
+    const [show, setShow] = useState(secureTextEntry)
   
     return (
     <View style={styles.inputContainer} >
@@ -27,7 +27,7 @@ export const Input = <TFieldValues extends FieldValues,>({control, name, secureT
               value={value}
               onChangeText={text => onChange(text)}
               style={[styles.input, styles.securedInput, props.style]}
-              secureTextEntry={!show}
+              secureTextEntry={show}
               {...props}
             />
           );
@@ -36,7 +36,7 @@ export const Input = <TFieldValues extends FieldValues,>({control, name, secureT
       {
         secureTextEntry && (
             <Pressable onPress={() => setShow(!show)} style={styles.iconBtn} >
-                <Icon name={show ? 'eye' : 'eye-slash'} size={19} />
+                <Icon name={!show ? 'eye' : 'eye-slash'} size={19} />
             </Pressable>
         )
       }
@@ -47,7 +47,7 @@ export const Input = <TFieldValues extends FieldValues,>({control, name, secureT
 const styles = StyleSheet.create({
     inputContainer: {
         width: "100%",
-        position: "relative"
+        position: "relative",
     },
     input: {
         borderWidth: 2,
@@ -63,6 +63,9 @@ const styles = StyleSheet.create({
     iconBtn: {
         position: "absolute",
         right: 6,
-        top: "48%",
+        top: "50%",
+        transform: [{translateY: -10}],
+        alignItems: "center",
+        justifyContent: "center"
     }
 });

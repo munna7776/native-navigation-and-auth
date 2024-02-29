@@ -7,40 +7,65 @@ import {
   View,
 } from 'react-native';
 import React from 'react';
-import {Input} from '../components/input';
-import {useForm} from 'react-hook-form';
-import {Label} from '../components/label';
+import {FormInput} from '../components/input';
+import { SubmitHandler, useForm} from 'react-hook-form';
+import {FormLabel} from '../components/label';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {AuthStackRoute} from '../routes/AuthStack';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { UserLogin, userLoginSchema } from '../schema/user';
+import { FormError } from '../components/error';
+import { useAppwriteService } from '../appwrite/provider';
+import Snackbar from 'react-native-snackbar';
 
 type LoginProps = NativeStackScreenProps<AuthStackRoute, 'Login'>;
 
 export const Login = ({navigation}: LoginProps) => {
-  const {control} = useForm({
+  const {control, formState: { errors }, handleSubmit} = useForm<UserLogin>({
     defaultValues: {
       email: '',
       password: '',
     },
+    resolver: zodResolver(userLoginSchema)
   });
+
+  const { appwrite, updateUserLoggedInStatus } = useAppwriteService()
+
+  const onLoginHandler: SubmitHandler<UserLogin> = async(data) => {
+    const user = await appwrite.login(data)
+    if(user) {
+      updateUserLoggedInStatus(true)
+      Snackbar.show({
+        text: "Login successfull",
+        duration: Snackbar.LENGTH_SHORT
+      })
+    }
+  }
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}>
-      <Label>Email*</Label>
-      <Input
+      <View style={styles.innerContainer} >
+      <FormLabel>Email*</FormLabel>
+      <FormInput
         control={control}
         name="email"
         placeholder="johdoe@example.com"
         placeholderTextColor="#30336B"
+        keyboardType='email-address'
       />
-      <Label>Password*</Label>
-      <Input
+      <FormError error={errors?.email?.message} />
+      <FormLabel>Password*</FormLabel>
+      <FormInput
         control={control}
         name="password"
         placeholder="********"
         placeholderTextColor="#30336B"
+        secureTextEntry
       />
-      <Pressable style={styles.loginBtn}>
+      <FormError error={errors?.password?.message} />
+      <Pressable style={styles.loginBtn} onPress={handleSubmit(onLoginHandler)} >
         <Text style={styles.loginBtnText}>Login</Text>
       </Pressable>
       <View style={styles.signupContainer}>
@@ -48,6 +73,7 @@ export const Login = ({navigation}: LoginProps) => {
         <Pressable onPress={() => navigation.navigate('Signup')}>
           <Text style={[styles.signupText, {fontWeight: '600'}]}>Sign up</Text>
         </Pressable>
+      </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -61,6 +87,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'flex-start',
+  },
+  innerContainer: {
+    flex: 1,
+    justifyContent: "center",
+    width: "100%",
+    gap: 10
   },
   loginBtn: {
     width: '100%',
