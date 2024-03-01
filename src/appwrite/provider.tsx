@@ -1,96 +1,92 @@
-import { ReactNode, createContext, useContext, useEffect, useRef, useState } from "react";
-import AppwriteService from "./service";
-import Snackbar from "react-native-snackbar";
-
-type User = {
-  name: string;
-  email: string
-}
+import {
+  ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import AppwriteService from './service';
+import Snackbar from 'react-native-snackbar';
 
 type AppwriteCtxType = {
-    appwrite: AppwriteService;
-    logout: () => void;
-    loading: boolean;
-    user: User | null;
-    isLoggedIn: boolean;
-    updateUserLoggedInStatus: (loggedInStatus: boolean) => void
-}
+  appwrite: AppwriteService;
+  logout: () => void;
+  isLoggedIn: boolean;
+  loading: boolean;
+  updateUserLoggedInStatus: (loggedInStatus: boolean) => void;
+};
 
 const AppwriteContext = createContext<AppwriteCtxType>({
-    appwrite: new AppwriteService(),
-    loading: false,
-    user: null,
-    logout: () => {},
-    isLoggedIn: false,
-    updateUserLoggedInStatus: () => {}
-    
-})
+  appwrite: new AppwriteService(),
+  logout: () => {},
+  isLoggedIn: false,
+  updateUserLoggedInStatus: () => {},
+  loading: false,
+});
 
 export const useAppwriteService = () => {
-    if(!AppwriteContext) {
-        throw new Error("Please wrap your component inside AppwriteProvider")
-    }
+  if (!AppwriteContext) {
+    throw new Error('Please wrap your component inside AppwriteProvider');
+  }
 
-    return useContext(AppwriteContext)
-}
+  return useContext(AppwriteContext);
+};
 
-export const AppwriteProvider = ({children}: { children: ReactNode }) => {
-    const [loading, setLoading] = useState(false);
-    const [user,setUser] = useState<User |null>(null)
-    const [isUserLoggedIn, setIsUserLoggedIn] = useState(false)
+export const AppwriteProvider = ({children}: {children: ReactNode}) => {
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const appwriteRef = useRef(new AppwriteService());
 
-    const appwriteRef = useRef(new AppwriteService())
-    
   useEffect(() => {
     (async function getUser() {
       try {
-        setLoading(true)
+        setLoading(true);
         const userModel = await appwriteRef.current.getCurentUser();
         if (userModel) {
-          setUser({name: userModel.name, email: userModel.email})
-          setIsUserLoggedIn(true)
+          setIsUserLoggedIn(true);
         }
       } catch (error) {
         Snackbar.show({
-          text: "Failed to load current user info",
-          duration: Snackbar.LENGTH_SHORT
-        })
+          text: 'Failed to load current user info',
+          duration: Snackbar.LENGTH_SHORT,
+        });
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  const updateUserLoggedInStatus = (loggedInStatus: boolean) => setIsUserLoggedIn(loggedInStatus)
+  const updateUserLoggedInStatus = (loggedInStatus: boolean) =>
+    setIsUserLoggedIn(loggedInStatus);
 
-
-  const handleLogout = async() => {
+  const handleLogout = async () => {
     try {
-      await appwriteRef.current.logout()
-      setUser(null)
-      setIsUserLoggedIn(false)
+      await appwriteRef.current.logout();
+      setIsUserLoggedIn(false);
       Snackbar.show({
-        text: "Successfully logged out",
-        duration: Snackbar.LENGTH_SHORT
-      })
+        text: 'Successfully logged out',
+        duration: Snackbar.LENGTH_SHORT,
+      });
     } catch (error) {
       Snackbar.show({
-        text: "Something went wrong. Failed to logout",
-        duration: Snackbar.LENGTH_LONG
-      })
+        text: 'Something went wrong. Failed to logout',
+        duration: Snackbar.LENGTH_LONG,
+      });
     }
-  }
+  };
 
-    const value: AppwriteCtxType = {
-        appwrite: appwriteRef.current,
-        loading,
-        user,
-        logout: handleLogout,
-        isLoggedIn: isUserLoggedIn,
-        updateUserLoggedInStatus
-    }
+  const value: AppwriteCtxType = {
+    appwrite: appwriteRef.current,
+    logout: handleLogout,
+    isLoggedIn: isUserLoggedIn,
+    updateUserLoggedInStatus,
+    loading,
+  };
 
-    return (
-        <AppwriteContext.Provider value={value} >{children}</AppwriteContext.Provider>
-    )
-}
+  return (
+    <AppwriteContext.Provider value={value}>
+      {children}
+    </AppwriteContext.Provider>
+  );
+};

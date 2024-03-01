@@ -1,42 +1,55 @@
-import {Pressable, StyleSheet, Text, View} from 'react-native';
-import React from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import React, {useState} from 'react';
 import {FormLabel} from '../components/label';
 import {FormInput} from '../components/input';
 import {SubmitHandler, useForm} from 'react-hook-form';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AuthStackRoute } from '../routes/AuthStack';
-import { UserSignup, userSignupSchema } from '../schema/user';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { FormError } from '../components/error';
-import { useAppwriteService } from '../appwrite/provider';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {AuthStackRoute} from '../routes/AuthStack';
+import {UserSignup, userSignupSchema} from '../schema/user';
+import {zodResolver} from '@hookform/resolvers/zod';
+import {FormError} from '../components/error';
+import {useAppwriteService} from '../appwrite/provider';
 import Snackbar from 'react-native-snackbar';
 
-type SignupProps = NativeStackScreenProps<AuthStackRoute, "Signup">
+type SignupProps = NativeStackScreenProps<AuthStackRoute, 'Signup'>;
 
-export const Signup = ({ navigation }: SignupProps) => {
-  const {control, formState: { errors }, handleSubmit} = useForm<UserSignup>({
+export const Signup = ({navigation}: SignupProps) => {
+  const {
+    control,
+    formState: {errors},
+    handleSubmit,
+  } = useForm<UserSignup>({
     defaultValues: {
       name: '',
       email: '',
       password: '',
       confirmPassword: '',
     },
-    resolver: zodResolver(userSignupSchema)
+    resolver: zodResolver(userSignupSchema),
   });
+  const [loading, setLoading] = useState(false);
 
-  const { appwrite, updateUserLoggedInStatus } = useAppwriteService()
+  const {appwrite, updateUserLoggedInStatus} = useAppwriteService();
 
-  const onSignupHandler: SubmitHandler<UserSignup> = async(data) => {
-    const {name,email,password} = data
-    const user = await appwrite.createUser({name,email,password})
-    if(user) {
-      updateUserLoggedInStatus(true)
+  const onSignupHandler: SubmitHandler<UserSignup> = async data => {
+    const {name, email, password} = data;
+    setLoading(true);
+    const user = await appwrite.createUser({name, email, password});
+    if (user) {
+      updateUserLoggedInStatus(true);
       Snackbar.show({
-        text: "Signup Successfull",
-        duration: Snackbar.LENGTH_SHORT
-      })
+        text: 'Signup Successfull',
+        duration: Snackbar.LENGTH_SHORT,
+      });
     }
-  }
+    setLoading(false);
+  };
 
   return (
     <View style={styles.container}>
@@ -54,7 +67,7 @@ export const Signup = ({ navigation }: SignupProps) => {
         name="email"
         placeholder="johdoe@example.com"
         placeholderTextColor="#30336B"
-        keyboardType='email-address'
+        keyboardType="email-address"
       />
       <FormError error={errors?.email?.message} />
       <FormLabel>Password*</FormLabel>
@@ -75,13 +88,21 @@ export const Signup = ({ navigation }: SignupProps) => {
         secureTextEntry
       />
       <FormError error={errors?.confirmPassword?.message} />
-      <Pressable style={styles.signupBtn} onPress={handleSubmit(onSignupHandler)} >
-        <Text style={styles.signupBtnText}>Sign up</Text>
+      <Pressable
+        style={styles.signupBtn}
+        disabled={loading}
+        aria-disabled={loading}
+        onPress={handleSubmit(onSignupHandler)}>
+        {loading ? (
+          <ActivityIndicator color="#fff" size={23} />
+        ) : (
+          <Text style={styles.signupBtnText}>Sign up</Text>
+        )}
       </Pressable>
       <View style={styles.loginContainer}>
         <Text style={styles.loginText}>Already have an account?</Text>
         <Pressable onPress={() => navigation.navigate('Login')}>
-          <Text style={[styles.loginText, {fontWeight: '600'}]}>Login</Text>
+          <Text style={[styles.loginText, styles.boldLoginText]}>Login</Text>
         </Pressable>
       </View>
     </View>
@@ -122,4 +143,5 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     color: '#47535E',
   },
+  boldLoginText: {fontWeight: '600'},
 });
